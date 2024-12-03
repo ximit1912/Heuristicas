@@ -2,20 +2,22 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define TAM_SOLUCAO 10 /* MUDAR AQUI QNT DE NOS LIDOS */
+#define TAM_SOLUCAO 280 /* MUDAR AQUI QNT DE NOS LIDOS */
 
 
 
 
 typedef struct{
     int x, y;
+    int visitado;
 }Cidades;
 
 Cidades cidades[TAM_SOLUCAO];
 
 float matrizDistancias[TAM_SOLUCAO][TAM_SOLUCAO];
 
-Cidades conjuntoSolucao[TAM_SOLUCAO];
+int conjuntoSolucao[TAM_SOLUCAO+1];
+float distTotal, distAux;
 
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -37,7 +39,7 @@ void mostrarDistancias()
 
         for (int j = 0; j < TAM_SOLUCAO; j++)
         {
-            printf("%d%d: %.2f\n", i+1, j+1, matrizDistancias[i][j]);
+            printf("%d->%d: %.2f\n", i+1, j+1, matrizDistancias[i][j]);
         }
 
         printf("\n");
@@ -70,6 +72,8 @@ void lerArquivo(char *nome)
         i = 0;
         while(i < TAM_SOLUCAO){
             fscanf(arq, "%d %d %d", &idAux, &cidades[i].x, &cidades[i].y);
+            cidades[i].visitado = 0;
+
             i++;
         }
 
@@ -107,13 +111,55 @@ void calcularDistancias()
 //////////////////////////////////////////////////////////////////////////////////
 // FUNCOES PRINCIPAIS
 
-// int vizinho_mais_proximo():
-// matriz   M 280x280 contendo as distancias entre os elementos
-// iniciar com uma cidade (vertice) arbitrário como atual
-// percorrer a linha correspondente da cidade procurando a menor distancia
-    // escolher a cidade c/ menor distancia (e somar a distancia total atual)
-// percorrer a partir dessa cidade da mesma forma, e assim por diante até visitar todas
-    // salvar a d
+void vizinho_mais_proximo()
+{
+    distTotal = 0, distAux = 0;
+    int i = 0, j;
+    int noAtual = 0, vizMaisProx, aux = 0;
+
+    /* Primeira cidade escolhida para iniciar o algoritmo */
+    cidades[0].visitado = 1;
+    conjuntoSolucao[0] = 1; /* OBS: cidades vão de 1 até TAMSOLUCAO */
+
+    while (i < TAM_SOLUCAO-1)
+    {
+        distAux = __FLT_MAX__;
+
+        for (j = 1; j < TAM_SOLUCAO; j++)
+        {
+            //printf("|| Para noh %d: \n", noAtual);
+            //printf("%.2f\n", distAux);
+            //printf("%d\n", cidades[j].visitado);
+            //printf("%.2f para noh - %d||\n", matrizDistancias[noAtual][j], j+1);
+
+            if(distAux > matrizDistancias[noAtual][j] && cidades[j].visitado == 0)
+            {
+                distAux = matrizDistancias[noAtual][j];
+                vizMaisProx = j; 
+            }
+        }
+        cidades[vizMaisProx].visitado = 1;
+        distTotal += distAux;
+        //printf("viz escolhido: %d & distancia total: %.2f \n\n", vizMaisProx+1, distTotal);
+
+        conjuntoSolucao[++i] = vizMaisProx+1;
+        noAtual = vizMaisProx; 
+    }
+
+    i = 0;
+    printf("\n\nDistancia total: %.2f\n", distTotal);
+    printf("Conjunto solucao: (");
+    while(i < TAM_SOLUCAO-1)
+        printf(" %d,", conjuntoSolucao[i++]);
+    printf(" %d)\n", conjuntoSolucao[i]);
+}
+
+
+
+
+
+
+
 
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -127,8 +173,8 @@ void main(int argc, char *argv[])
     lerArquivo(argv[1]);
     mostrarCidades();
     calcularDistancias();
-    mostrarDistancias();
+    //mostrarDistancias();
 
-    // vizinho_mais_proximo(;
+    vizinho_mais_proximo();
 
 }
