@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define TAM_SOLUCAO 33810 /* MUDAR AQUI QNT DE NOS LIDOS */
+#define TAM_SOLUCAO 280 /* MUDAR AQUI QNT DE NOS LIDOS */
 
 int noInicial = 0;
 unsigned long int distTotal, distAux;
@@ -26,6 +26,7 @@ int *vetorDistancias;
 
 /* FUNÇÃO QUE CONVERTE PARA A POSICAO CORRESPONDENTE DO vetorDistancias ONDE SE ENCONTRA
    A DISTANCIA CORRETA ENTRE 2 NÓS/CIDADES i,j  */
+/*
 int converteIndice(float i, float j)
 {
     int indice;
@@ -33,7 +34,7 @@ int converteIndice(float i, float j)
     {
         indice = -1;
     }
-    else if(i > j) /* então troca i com j */
+    else if(i > j) // então troca i com j 
         {
             indice = ((j * (2 * TAM_SOLUCAO - j - 1)) / 2) + (i - j - 1);
         }
@@ -43,14 +44,10 @@ int converteIndice(float i, float j)
             }
     return indice;
 }
-
-int calculaDistancia(Cidades a, Cidades b) {
-    int xa = (int)a.x, ya = (int)a.y;
-    int xb = (int)b.x, yb = (int)b.y;
-    return sqrt((xb - xa)*(xb - xa) + (yb - ya)*(yb - ya));
-}
+*/
 
 
+/*
 void mostrarCidades(Cidades *cidades)
 {
     for(int i = 0; i < TAM_SOLUCAO; i++)
@@ -58,7 +55,9 @@ void mostrarCidades(Cidades *cidades)
         printf("%d: (%d,%d)\n", i+1, (int) cidades[i].x, (int) cidades[i].y);
     }
 }
+*/
 
+/*
 void mostrarDistancias()
 {
     for (int i = 0; i < TAM_SOLUCAO; i++)
@@ -73,11 +72,12 @@ void mostrarDistancias()
         printf("\n");
     }
 }
+*/
 
-
+/*
 void calcularDistancias(Cidades *cidades)
 {
-    int dist, i, j, z=0; /* indices, z para o vetor de distancias */
+    int dist, i, j, z=0; // indices, z para o vetor de distancias 
     int  xa, ya,
          xb, yb;
 
@@ -95,6 +95,23 @@ void calcularDistancias(Cidades *cidades)
         }
         
     }
+}
+*/
+
+// REINICIA O INDICE DOS NOS JA VISITADOS PARA NÃO VISITADOS
+void limparVisitados(Cidades *cidades)
+{
+    for (int i = 0; i < TAM_SOLUCAO; i++)
+    {
+        cidades[i].visitado = 0;
+    }
+}
+
+// CALCULA DISTANCIA ENTRE CIDADE a(x,y) E b(x',y')
+int calculaDistancia(Cidades a, Cidades b) {
+    int xa = (int)a.x, ya = (int)a.y;
+    int xb = (int)b.x, yb = (int)b.y;
+    return sqrt((xb - xa)*(xb - xa) + (yb - ya)*(yb - ya));
 }
 
 
@@ -141,7 +158,7 @@ void lerArquivo(char *nome, Cidades *cidades)
 //////////////////////////////////////////////////////////////////////////////////
 // FUNCOES PRINCIPAIS
 
-void vizinho_mais_proximo(Cidades *cidades, int *conjuntoSolucao)
+void vizinhoMaisProximo(Cidades *cidades, int *conjuntoSolucao)
 {
     distTotal = 0, distAux = 0;
     int i = 0, distancia;
@@ -151,6 +168,7 @@ void vizinho_mais_proximo(Cidades *cidades, int *conjuntoSolucao)
     cidades[noAtual].visitado = 1;
     conjuntoSolucao[0] = noAtual+1; /* OBS: cidades vão de 1 até TAMSOLUCAO */
 
+    printf("Iniciando vizinho mais proximo:\n");
     while (i < TAM_SOLUCAO - 1)
     {
         distAux = __INT_MAX__;
@@ -183,16 +201,18 @@ void vizinho_mais_proximo(Cidades *cidades, int *conjuntoSolucao)
     distTotal += calculaDistancia(cidades[noAtual], cidades[noInicial]); // vetorDistancias[converteIndice(noAtual,noInicial)];
     conjuntoSolucao[++i] = noInicial+1;
     
-    
-    i = 0;
     printf("\nDistancia total: %d\n", distTotal);
+}
+    // LAÇO PARA IMPRIMIR O CONJUNTO SOLUÇÃO
     /*   
+    i = 0;
+
     printf("Conjunto solucao: (");
     while(i < TAM_SOLUCAO)
         printf(" %d,", conjuntoSolucao[i++]);
     printf(" %d)\n", conjuntoSolucao[i]);
     */
-}
+
 
 
 
@@ -207,6 +227,7 @@ void vizinho_mais_proximo(Cidades *cidades, int *conjuntoSolucao)
 
 void main(int argc, char *argv[])
 {
+    int sair = 0, opcao;
     Cidades cidades[TAM_SOLUCAO]; /* vetor contendo as cidades */
     int conjuntoSolucao[TAM_SOLUCAO+1]; /* vetor para conter a solução (sequência de vértices de noorigem, ..., n, noorigem) */
     vetorDistancias = (int*) malloc(tamDiagSup * sizeof(int)); /* aloca memória para o vetor de distancias de acordo com o TAM_SOL */
@@ -214,9 +235,48 @@ void main(int argc, char *argv[])
     lerArquivo(argv[1], cidades);
     // mostrarCidades(cidades);
     // mostrarDistancias(vetorDistancias);
-    vizinho_mais_proximo(cidades, conjuntoSolucao);
+    while(!sair)
+    {
+        printf("\nEscolha qual heuristica construtiva voce deseja utilizar:");
+        printf("\n[Digite 1] - para vizinho mais proximo");
+        printf("\n[Digite 2] - para insercao mais proxima");
+        printf("\n[Digite qualquer outra coisa para encerrar]\n");
+        scanf("%d", &opcao);
+        if(opcao == 1)
+        {
+            vizinhoMaisProximo(cidades, conjuntoSolucao);
 
-     /*
+            printf("Iniciar heuristica de melhoramente 2-Opt? [Digite 1 para sim] [Digite qualquer coisa para nao]\n");
+            scanf("%d", &opcao);
+            if(opcao == 1)
+            {
+                // melhorativa2Opt(cidades, conjuntoSolucao) 
+            }
+
+        }
+        else if(opcao == 2)
+            {
+                // insercaoMaisProx(cidades, conjuntoSolucao)
+
+                printf("Iniciar heuristica de melhoramente 2-Opt? [Digite 1 para sim] [Digite qualquer coisa para nao]\n");
+                scanf("%d", &opcao);
+                if(opcao == 1)
+                {
+                    // melhorativa2Opt(cidades, conjuntoSolucao) 
+                }
+            }else
+                {
+                    printf("Encerrando...");
+                    sair = 1;
+                }    
+
+        limparVisitados(cidades);
+    }
+
+}
+
+// 1° TESTE DE MELHORAMENTO - VERIFICAR TODOS OS NÓS COMO INICIAL, RETORNAR MELHOR SOLUÇÃO
+    /*
     int noMenor, menor = __INT_MAX__;
 
     while(noInicial < TAM_SOLUCAO)
@@ -237,4 +297,3 @@ void main(int argc, char *argv[])
     printf("\n\nNO %d - MENOR DIST: %d", noMenor, menor);
     
     */
-}
