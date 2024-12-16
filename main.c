@@ -3,19 +3,22 @@
 #include <math.h>
 
 #define TAM_SOLUCAO 280 /* MUDAR AQUI QNT DE NOS LIDOS */
+int noInicial = 100;
 
-int noInicial = 0;
 unsigned long int distTotal, distAux;
 
+// Estrutura para guardar as cidades do arquivo
 typedef struct{
     float x, y;
     int visitado;
 }Cidades;
 
-int tamDiagSup = (TAM_SOLUCAO * (TAM_SOLUCAO-1))/2; 
+
+
+// int tamDiagSup = (TAM_SOLUCAO * (TAM_SOLUCAO-1))/2; 
 /* QNT DE ELEMENTOS A SEREM PERCORRIDOS DO VETOR DE CUSTOS, NELE SÃO RETIRADAS AS 
    REDUNDANCIAS DA MATRIZ DE CUSTOS Ci,i E Ci,j == Cj,i (economizar memória!) */
-int *vetorDistancias;
+// int *vetorDistancias;
 /* PONTEIRO PARA O VETOR QUE FICARÃO AS DISTANCIAS */
 
 
@@ -158,6 +161,7 @@ void lerArquivo(char *nome, Cidades *cidades)
 //////////////////////////////////////////////////////////////////////////////////
 // FUNCOES PRINCIPAIS
 
+// CONSTRUTIVA VIZINHO MAIS PROXIMO
 void vizinhoMaisProximo(Cidades *cidades, int *conjuntoSolucao)
 {
     distTotal = 0, distAux = 0;
@@ -168,7 +172,7 @@ void vizinhoMaisProximo(Cidades *cidades, int *conjuntoSolucao)
     cidades[noAtual].visitado = 1;
     conjuntoSolucao[0] = noAtual+1; /* OBS: cidades vão de 1 até TAMSOLUCAO */
 
-    printf("Iniciando vizinho mais proximo:\n");
+    printf("\n\nIniciando vizinho mais proximo ...\n");
     while (i < TAM_SOLUCAO - 1)
     {
         distAux = __INT_MAX__;
@@ -201,7 +205,7 @@ void vizinhoMaisProximo(Cidades *cidades, int *conjuntoSolucao)
     distTotal += calculaDistancia(cidades[noAtual], cidades[noInicial]); // vetorDistancias[converteIndice(noAtual,noInicial)];
     conjuntoSolucao[++i] = noInicial+1;
     
-    printf("\nDistancia total: %d\n", distTotal);
+    printf("\nDistancia total (vizinho mais proximo): %d\n", distTotal);
 }
     // LAÇO PARA IMPRIMIR O CONJUNTO SOLUÇÃO
     /*   
@@ -214,7 +218,104 @@ void vizinhoMaisProximo(Cidades *cidades, int *conjuntoSolucao)
     */
 
 
+// CONSTRUTIVA INSERCAO MAIS PROXIMA
+// CONSTRUTIVA INSERCAO MAIS PROXIMA
+void insercaoMaisProxima(Cidades *cidades, int *conjuntoSolucao) 
+{
+    distTotal = 0; // Inicia a distância total em 0
+    int i, j, k;
+    int numCidadesNaSolucao = 3; // Começa com três cidades no ciclo inicial
+    int cidadeMaisProxima, menorDistancia, custoInsercao, melhorInsercao;
+    int no1, no2;
 
+    printf("\n\nIniciando insercao mais proxima ...\n");
+
+    // Passo 1: Inicializar o ciclo com três cidades
+    conjuntoSolucao[0] = noInicial; 
+    cidades[noInicial].visitado = 1; // Marca a cidade inicial como visitada
+
+    // Escolher a segunda cidade (a mais próxima da inicial)
+    menorDistancia = __INT_MAX__;
+    for (i = 0; i < TAM_SOLUCAO; i++) {
+        if (!cidades[i].visitado) {
+            int dist = calculaDistancia(cidades[noInicial], cidades[i]);
+            if (dist < menorDistancia) {
+                menorDistancia = dist;
+                cidadeMaisProxima = i;
+            }
+        }
+    }
+
+    conjuntoSolucao[1] = cidadeMaisProxima; 
+    cidades[cidadeMaisProxima].visitado = 1; // Marca a segunda cidade como visitada
+    distTotal += menorDistancia;
+
+    // Escolher a terceira cidade (a mais próxima de qualquer uma das duas primeiras)
+    menorDistancia = __INT_MAX__;
+    for (i = 0; i < TAM_SOLUCAO; i++) {
+        if (!cidades[i].visitado) {
+            int dist1 = calculaDistancia(cidades[conjuntoSolucao[0]], cidades[i]);
+            int dist2 = calculaDistancia(cidades[conjuntoSolucao[1]], cidades[i]);
+            int menorDist = dist1 < dist2 ? dist1 : dist2;
+            if (menorDist < menorDistancia) {
+                menorDistancia = menorDist;
+                cidadeMaisProxima = i;
+            }
+        }
+    }
+
+    conjuntoSolucao[2] = cidadeMaisProxima; 
+    cidades[cidadeMaisProxima].visitado = 1; // Marca a terceira cidade como visitada
+    distTotal += menorDistancia;
+
+    // Fechar o ciclo inicial com as três cidades
+    conjuntoSolucao[3] = noInicial;
+    distTotal += calculaDistancia(cidades[cidadeMaisProxima], cidades[noInicial]);
+
+
+    // 
+    printf("Ciclo inicial com 3 cidades: ");
+    for (i = 0; i < 3; i++) {
+        printf("%d -> ", conjuntoSolucao[i] + 1);
+    }
+    printf("%d\n", conjuntoSolucao[3] + 1);
+
+    // Passo 2: Expandir a solução iterativamente
+    while (numCidadesNaSolucao < TAM_SOLUCAO) {
+        menorDistancia = __INT_MAX__;
+        // Encontrar o próximo nó a ser inserido (cidade mais próxima de qualquer nó no ciclo)
+        for (i = 0; i < TAM_SOLUCAO; i++) {
+            if (!cidades[i].visitado) {
+                for (j = 0; j < numCidadesNaSolucao; j++) {
+                    int dist = calculaDistancia(cidades[conjuntoSolucao[j]], cidades[i]);
+                    if (dist < menorDistancia) {
+                        menorDistancia = dist;
+                        cidadeMaisProxima = i;
+                        melhorInsercao = j;
+                    }
+                }
+            }
+        }
+
+        // Inserir a cidade no melhor lugar no ciclo
+        no1 = conjuntoSolucao[melhorInsercao];
+        no2 = conjuntoSolucao[(melhorInsercao + 1) % numCidadesNaSolucao];
+        custoInsercao = calculaDistancia(cidades[no1], cidades[cidadeMaisProxima]) +
+                        calculaDistancia(cidades[cidadeMaisProxima], cidades[no2]) -
+                        calculaDistancia(cidades[no1], cidades[no2]);
+
+        // Insere a cidade na posição correta
+        for (k = numCidadesNaSolucao; k > melhorInsercao + 1; k--) {
+            conjuntoSolucao[k] = conjuntoSolucao[k - 1];
+        }
+        conjuntoSolucao[melhorInsercao + 1] = cidadeMaisProxima;
+        cidades[cidadeMaisProxima].visitado = 1; // Marca a cidade como visitada
+        distTotal += custoInsercao; // Atualiza a distância total
+        numCidadesNaSolucao++;
+    }
+
+    printf("\nDistancia Total (insercao mais proxima): %d\n", distTotal);
+}
 
 
 
@@ -229,8 +330,8 @@ void main(int argc, char *argv[])
 {
     int sair = 0, opcao;
     Cidades cidades[TAM_SOLUCAO]; /* vetor contendo as cidades */
-    int conjuntoSolucao[TAM_SOLUCAO+1]; /* vetor para conter a solução (sequência de vértices de noorigem, ..., n, noorigem) */
-    vetorDistancias = (int*) malloc(tamDiagSup * sizeof(int)); /* aloca memória para o vetor de distancias de acordo com o TAM_SOL */
+    int conjuntoSolucao[TAM_SOLUCAO+1]; /* vetor para conter a solução (sequência de n+1 vértices de noorigem, ..., noorigem) */
+    // vetorDistancias = (int*) malloc(tamDiagSup * sizeof(int)); /* aloca memória para o vetor de distancias de acordo com o TAM_SOL */
 
     lerArquivo(argv[1], cidades);
     // mostrarCidades(cidades);
@@ -238,15 +339,15 @@ void main(int argc, char *argv[])
     while(!sair)
     {
         printf("\nEscolha qual heuristica construtiva voce deseja utilizar:");
-        printf("\n[Digite 1] - para vizinho mais proximo");
-        printf("\n[Digite 2] - para insercao mais proxima");
-        printf("\n[Digite qualquer outra coisa para encerrar]\n");
+        printf("\n[1] - para vizinho mais proximo");
+        printf("\n[2] - para insercao mais proxima");
+        printf("\n[outro] - encerrar\nDIGITE: ");
         scanf("%d", &opcao);
         if(opcao == 1)
         {
             vizinhoMaisProximo(cidades, conjuntoSolucao);
 
-            printf("Iniciar heuristica de melhoramente 2-Opt? [Digite 1 para sim] [Digite qualquer coisa para nao]\n");
+            printf("Iniciar heuristica de melhoramento 2-Opt?\n[1] - sim \n[outro] - nao\nDIGITE: ");
             scanf("%d", &opcao);
             if(opcao == 1)
             {
@@ -256,9 +357,9 @@ void main(int argc, char *argv[])
         }
         else if(opcao == 2)
             {
-                // insercaoMaisProx(cidades, conjuntoSolucao)
+                insercaoMaisProxima(cidades, conjuntoSolucao);
 
-                printf("Iniciar heuristica de melhoramente 2-Opt? [Digite 1 para sim] [Digite qualquer coisa para nao]\n");
+                printf("Iniciar heuristica de melhoramento 2-Opt?\n[1] - sim \n[outro] - nao\nDIGITE: ");
                 scanf("%d", &opcao);
                 if(opcao == 1)
                 {
@@ -266,7 +367,7 @@ void main(int argc, char *argv[])
                 }
             }else
                 {
-                    printf("Encerrando...");
+                    printf("\nEncerrando...");
                     sair = 1;
                 }    
 
