@@ -3,7 +3,7 @@
 #include <math.h>
 #include <time.h>
 
-#define TAM_SOLUCAO 574 /* MUDAR AQUI QNT DE NOS LIDOS */
+#define TAM_SOLUCAO 85900 /* MUDAR AQUI QNT DE NOS LIDOS */
 int noInicial = 0;
 
 unsigned long long int distTotal, distAux;
