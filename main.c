@@ -3,7 +3,7 @@
 #include <math.h>
 #include <time.h>
 
-#define TAM_SOLUCAO 280 /* MUDAR AQUI QNT DE NOS LIDOS */
+#define TAM_SOLUCAO 14051 /* MUDAR AQUI QNT DE NOS LIDOS */
 int noInicial = 0;
 
 unsigned long int distTotal, distAux;
@@ -381,78 +381,55 @@ void melhorativaPairSwap(Cidades *cidades, int *conjuntoSolucao, int noFixo)
 
 
 
+
 // MELHORATIVA LAST-IMPROVEMENT PAIR-SWAP COM TEMPO LIMITE
-void melhorativaPairSwapLast(Cidades *cidades, int *conjuntoSolucao, int noFixo, double segundos)
+void melhorativaPairSwapLast(Cidades *cidades, int *conjuntoSolucao, int noFixo)
 {
-    int melhorou = 0, 
-        distNova, distAntiga, 
-        melhorI = -1, temp; // Guarda o melhor índice
-    int i = TAM_SOLUCAO - 1; 
-    int melhorDistNova = __INT_MAX__;
-
-    clock_t inicio = clock(); // Marca o tempo inicial
-    clock_t tempoAtual;
-    double tempoDecorrido;
-
-    // Calcula as distâncias antigas para os vizinhos do noFixo (primeiro elemento do par)
-    distAntiga = calculaDistancia(cidades[conjuntoSolucao[noFixo - 1] - 1], cidades[conjuntoSolucao[noFixo] - 1]);
-    distAntiga += calculaDistancia(cidades[conjuntoSolucao[noFixo] - 1], cidades[conjuntoSolucao[noFixo + 1] - 1]);
-
-    while (i > 0) 
+    int distNova, distAntiga, 
+        i = TAM_SOLUCAO-1, temp; 
+    
+    // Calcula as distancias para os vizinhos do noFixo (1° elemento do par)
+    distAntiga = calculaDistancia(cidades[conjuntoSolucao[noFixo - 1]-1], cidades[conjuntoSolucao[noFixo]-1]);
+    distAntiga += calculaDistancia(cidades[conjuntoSolucao[noFixo]-1], cidades[conjuntoSolucao[noFixo + 1]-1]);
+    
+    while(i > 0)
     {
-        // Verifica o tempo decorrido
-        tempoAtual = clock();
-        tempoDecorrido = ((double)(tempoAtual - inicio)) / CLOCKS_PER_SEC;
+        
 
-        if (segundos > 0 && tempoDecorrido >= segundos) 
-        {
-            printf("\n#Tempo limite de %.2lf segundos atingido!\n", segundos);
-            break;
-        }
-
-        if (i != noFixo && i != noFixo + 1 && i != noFixo - 1) 
+        if(i != noFixo && i != noFixo+1 && i != noFixo-1)
         {   
-            // Calcula as distâncias para os vizinhos do i (segundo elemento do par)
-            int distTemp = distAntiga;
-            distTemp += calculaDistancia(cidades[conjuntoSolucao[i - 1] - 1], cidades[conjuntoSolucao[i] - 1]);
-            distTemp += calculaDistancia(cidades[conjuntoSolucao[i] - 1], cidades[conjuntoSolucao[i + 1] - 1]);
+            // Calcula as distancias para os vizinhos do i (2° elemento do par)
+            distAntiga += calculaDistancia(cidades[conjuntoSolucao[i - 1]-1], cidades[conjuntoSolucao[i]-1]);
+            distAntiga += calculaDistancia(cidades[conjuntoSolucao[i]-1], cidades[conjuntoSolucao[i + 1]-1]);
 
-            // Calcula a nova distância após a troca
-            distNova = calculaDistancia(cidades[conjuntoSolucao[noFixo - 1] - 1], cidades[conjuntoSolucao[i] - 1]);
-            distNova += calculaDistancia(cidades[conjuntoSolucao[i] - 1], cidades[conjuntoSolucao[noFixo + 1] - 1]);
-            distNova += calculaDistancia(cidades[conjuntoSolucao[i - 1] - 1], cidades[conjuntoSolucao[noFixo] - 1]);
-            distNova += calculaDistancia(cidades[conjuntoSolucao[noFixo] - 1], cidades[conjuntoSolucao[i + 1] - 1]);
+            // Calcula as novas distancias para os novos vizinhos 
+            distNova = calculaDistancia(cidades[conjuntoSolucao[noFixo - 1]-1], cidades[conjuntoSolucao[i]-1]);
+            distNova += calculaDistancia(cidades[conjuntoSolucao[i]-1], cidades[conjuntoSolucao[noFixo + 1]-1]);
 
-            // Verifica se a nova distância é melhor e armazena a última melhoria encontrada
-            if (distNova < distTemp && distNova < melhorDistNova) 
-            {
-                melhorI = i;
-                melhorDistNova = distNova;
-                melhorou = 1;
+            distNova += calculaDistancia(cidades[conjuntoSolucao[i - 1]-1], cidades[conjuntoSolucao[noFixo]-1]);
+            distNova += calculaDistancia(cidades[conjuntoSolucao[noFixo]-1], cidades[conjuntoSolucao[i + 1]-1]);
+
+            printf("Trocando %d e %d, distAntiga: %d, distNova: %d\n", conjuntoSolucao[noFixo], conjuntoSolucao[i], distAntiga, distNova);
+            if(distNova < distAntiga)
+            {   
+                // Atualiza a distancia/custo total 
+                distTotal -= distAntiga;
+                distTotal += distNova;
+                
+                // Faz a troca do par no conjunto solucao 
+                temp = conjuntoSolucao[noFixo];
+                conjuntoSolucao[noFixo] = conjuntoSolucao[i];
+                conjuntoSolucao[i] = temp;
             }
-        }
+        }    
+
         i--;
     }
 
-    if (!melhorou) 
-    {
-        printf("\n#Pair-swap no %d com todos nao encontrou uma solucao melhor!\n", noFixo);
-    } 
-    else 
-    {
-        // Realiza a troca com a última melhoria encontrada
-        distTotal -= distAntiga;
-        distTotal += melhorDistNova;
-
-        temp = conjuntoSolucao[noFixo];
-        conjuntoSolucao[noFixo] = conjuntoSolucao[melhorI];
-        conjuntoSolucao[melhorI] = temp;
-
-        printf("#Pair-swap de conjSol[%d]=%d e conjSol[%d]=%d encontrou uma solucao melhor!\n", 
-                noFixo, conjuntoSolucao[melhorI], melhorI, conjuntoSolucao[noFixo]);
-        printf("\n#Nova Distancia total: %d\n", distTotal);
-    }
+    printf("\n#Nova Distancia total: %d\n#Novo ", distTotal);
+    // mostrarSolucao(conjuntoSolucao);
 }
+
 
 
 
@@ -486,24 +463,35 @@ void main(int argc, char *argv[])
             inicio = time(NULL);
             vizinhoMaisProximo(cidades, conjuntoSolucao);
             fim = time(NULL);
-            printf("Tempo de execucao: %d s\n", difftime(fim, inicio));
+            printf("Tempo de execucao: %.1f s\n", difftime(fim, inicio));
 
-            printf("Iniciar heuristica de melhoramento?\n[1] - Pair Swap\n[2] - 2-Opt\n[?] - Sair\nDIGITE > ");
+            printf("Iniciar heuristica de melhoramento Pair-Swap?\n[1] - First improvement\n[2] - Last improvement\n[?] - Sair\nDIGITE > ");
             scanf("%d", &opcao);
             if(opcao == 1)
             {
                 int noFixo;
-                printf("\nPair-swap, escolha o no fixo (0 < noFixo < %d)\nDIGITE > ", TAM_SOLUCAO);
+                printf("\nFirst Improvement, escolha o no fixo (0 < noFixo < %d)\nDIGITE > ", TAM_SOLUCAO);
                 scanf("%d", &noFixo);
 
                 inicio = time(NULL);
                 melhorativaPairSwap(cidades, conjuntoSolucao, noFixo); /* 3° parametro: valor do no fixo para trocas de pares (0 < noFixo < TAM_SOL) */
                 fim = time(NULL);
-                printf("Tempo de execucao: %d s\n", difftime(fim, inicio));
+                printf("Tempo de execucao: %.1f s\n", difftime(fim, inicio));
             }
             else if(opcao == 2)
                 {
-                    melhorativa2opt(cidades, conjuntoSolucao);
+                    int noFixo;
+                    double segundos;
+
+                    printf("\nLast improvement, escolha o no fixo (0 < noFixo < %d)\nDIGITE > ", TAM_SOLUCAO);
+                    scanf("%d", &noFixo);
+                    // printf("\nE escolha quantos segundos para o codigo rodar, ou 0 para ir ate o fim\nDIGITE > ");
+                    // scanf("%d", &segundos);
+
+                    inicio = time(NULL);
+                    melhorativaPairSwapLast(cidades, conjuntoSolucao, noFixo); /* 3° parametro: valor do no fixo para trocas de pares (0 < noFixo < TAM_SOL) */
+                    fim = time(NULL);
+                    printf("Tempo de execucao: %.1f s\n", difftime(fim, inicio));
                 }
         }
         else if(opcao == 2)
@@ -511,24 +499,35 @@ void main(int argc, char *argv[])
                 inicio = time(NULL);
                 insercaoMaisProxima(cidades, conjuntoSolucao);
                 fim = time(NULL);
-                printf("Tempo de execucao: %d s\n", difftime(fim, inicio));
+                printf("Tempo de execucao: %.1f s\n", difftime(fim, inicio));
 
-                printf("Iniciar heuristica de melhoramento?\n[1] - Pair-swap\n[2] - 2-Opt\n[?] - Sair\nDIGITE > ");
+                printf("Iniciar heuristica de melhoramento Pair-Swap?\n[1] - First improvement\n[2] - Last improvement\n[?] - Sair\nDIGITE > ");
                 scanf("%d", &opcao);
                 if(opcao == 1)
                 {
                     int noFixo;
-                    printf("\nPair-swap, escolha o no fixo (0 < noFixo < %d)\nDIGITE > ", TAM_SOLUCAO);
+                    printf("\nFirst improvement, escolha o no fixo (0 < noFixo < %d)\nDIGITE > ", TAM_SOLUCAO);
                     scanf("%d", &noFixo);
 
                     inicio = time(NULL);
                     melhorativaPairSwap(cidades, conjuntoSolucao, noFixo); /* 3° parametro: valor do no fixo para trocas de pares (0 < noFixo < TAM_SOL) */
                     fim = time(NULL);
-                    printf("Tempo de execucao: %f\n", difftime(fim, inicio));
+                    printf("Tempo de execucao: %.1f\n", difftime(fim, inicio));
                 }   
                 else if(opcao == 2)
                     {
-                        melhorativa2opt(cidades, conjuntoSolucao);
+                        int noFixo;
+                        double segundos;
+
+                        printf("\nLast improvement, escolha o no fixo (0 < noFixo < %d)\nDIGITE > ", TAM_SOLUCAO);
+                        scanf("%d", &noFixo);
+                        // printf("\nE escolha quantos segundos para o codigo rodar, ou 0 para ir ate o fim\nDIGITE > ");
+                        // scanf("%d", &segundos);
+
+                        inicio = time(NULL);
+                        melhorativaPairSwapLast(cidades, conjuntoSolucao, noFixo); /* 3° parametro: valor do no fixo para trocas de pares (0 < noFixo < TAM_SOL) */
+                        fim = time(NULL);
+                        printf("Tempo de execucao: %.1f s\n", difftime(fim, inicio));
                     }     
             }else 
                 sair = 1;
