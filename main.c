@@ -3,7 +3,7 @@
 #include <math.h>
 #include <time.h>
 
-#define TAM_SOLUCAO 14051 /* MUDAR AQUI QNT DE NOS LIDOS */
+#define TAM_SOLUCAO 1000/* MUDAR AQUI QNT DE NOS LIDOS */
 int noInicial = 0;
 
 unsigned long int distTotal, distAux;
@@ -51,7 +51,7 @@ int converteIndice(float i, float j)
 */
 
 
-/*
+
 void mostrarCidades(Cidades *cidades)
 {
     for(int i = 0; i < TAM_SOLUCAO; i++)
@@ -59,7 +59,7 @@ void mostrarCidades(Cidades *cidades)
         printf("%d: (%d,%d)\n", i+1, (int) cidades[i].x, (int) cidades[i].y);
     }
 }
-*/
+
 
 /*
 void mostrarDistancias()
@@ -143,7 +143,7 @@ void lerArquivo(char *nome, Cidades *cidades)
 
         int i = 0, idAux;
         float x,y;
-        char linhaAux[60];
+        char linhaAux[75];
 
         // pula as 6 primeiras linhas dos arquivos.tsp
         while (i < 6)
@@ -447,8 +447,9 @@ void main(int argc, char *argv[])
     // vetorDistancias = (int*) malloc(tamDiagSup * sizeof(int)); /* aloca memória para o vetor de distancias de acordo com o TAM_SOL */
 
     lerArquivo(argv[1], cidades);
-    // mostrarCidades(cidades);
+    mostrarCidades(cidades);
     // mostrarDistancias(vetorDistancias);
+
 
     while(!sair)
     {
