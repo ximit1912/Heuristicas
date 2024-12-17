@@ -3,10 +3,10 @@
 #include <math.h>
 #include <time.h>
 
-#define TAM_SOLUCAO 1000/* MUDAR AQUI QNT DE NOS LIDOS */
+#define TAM_SOLUCAO 574 /* MUDAR AQUI QNT DE NOS LIDOS */
 int noInicial = 0;
 
-unsigned long int distTotal, distAux;
+unsigned long long int distTotal, distAux;
 
 // Estrutura para guardar as cidades do arquivo
 typedef struct{
@@ -216,7 +216,7 @@ void vizinhoMaisProximo(Cidades *cidades, int *conjuntoSolucao)
     distTotal += calculaDistancia(cidades[noAtual], cidades[noInicial]); // vetorDistancias[converteIndice(noAtual,noInicial)];
     conjuntoSolucao[++i] = noInicial+1;
     
-    printf("\nDistancia total (vizinho mais proximo): %d\n", distTotal);
+    printf("\nDistancia total (vizinho mais proximo): %lld\n", distTotal);
 }
 
 
@@ -316,7 +316,7 @@ void insercaoMaisProxima(Cidades *cidades, int *conjuntoSolucao)
     }
     conjuntoSolucao[i] = noInicial + 1;
 
-    printf("\nDistancia Total (insercao mais proxima): %d\n", distTotal);
+    printf("\nDistancia Total (insercao mais proxima): %lld\n", distTotal);
     // mostrarSolucao(conjuntoSolucao);
 }
 
@@ -325,9 +325,10 @@ void insercaoMaisProxima(Cidades *cidades, int *conjuntoSolucao)
 // MELHORATIVA FIRST-IMPROVEMENT PAIR-SWAP (0 < noFixo < TAM_SOLUCAO para nao alterar a origem)
 void melhorativaPairSwap(Cidades *cidades, int *conjuntoSolucao, int noFixo)
 {
-    int melhorou = 0, 
-        distNova, distAntiga, 
-        i = TAM_SOLUCAO-1, temp; 
+    int melhorou = 0,  
+        i = TAM_SOLUCAO-1, 
+        temp;
+    unsigned long long int distNova, distAntiga; 
     
     // Calcula as distancias para os vizinhos do noFixo (1° elemento do par)
     distAntiga = calculaDistancia(cidades[conjuntoSolucao[noFixo - 1]-1], cidades[conjuntoSolucao[noFixo]-1]);
@@ -350,7 +351,7 @@ void melhorativaPairSwap(Cidades *cidades, int *conjuntoSolucao, int noFixo)
             distNova += calculaDistancia(cidades[conjuntoSolucao[i - 1]-1], cidades[conjuntoSolucao[noFixo]-1]);
             distNova += calculaDistancia(cidades[conjuntoSolucao[noFixo]-1], cidades[conjuntoSolucao[i + 1]-1]);
 
-            printf("Trocando %d e %d, distAntiga: %d, distNova: %d\n", conjuntoSolucao[noFixo], conjuntoSolucao[i], distAntiga, distNova);
+            printf("Trocando %d e %d, distAntiga: %lld, distNova: %lld\n", conjuntoSolucao[noFixo], conjuntoSolucao[i], distAntiga, distNova);
             if(distNova < distAntiga)
             {   
                 // Atualiza a distancia/custo total 
@@ -373,7 +374,7 @@ void melhorativaPairSwap(Cidades *cidades, int *conjuntoSolucao, int noFixo)
     else
     {
         printf("#Encontrado!\n\n#Pair-swap de conjSol[%d]=%d e conjSol[%d]=%d encontrou uma solucao melhor!", noFixo, conjuntoSolucao[i], i, conjuntoSolucao[noFixo]);
-        printf("\n#Nova Distancia total: %d\n#Novo ", distTotal);
+        printf("\n#Nova Distancia total: %lld\n#Novo ", distTotal);
 
         // mostrarSolucao(conjuntoSolucao);
     }
@@ -412,6 +413,8 @@ void melhorativaPairSwapLast(Cidades *cidades, int *conjuntoSolucao, int noFixo)
             printf("Trocando %d e %d, distAntiga: %d, distNova: %d\n", conjuntoSolucao[noFixo], conjuntoSolucao[i], distAntiga, distNova);
             if(distNova < distAntiga)
             {   
+                printf("    !!Encontrado vizinho com melhor solucao!!\n");
+
                 // Atualiza a distancia/custo total 
                 distTotal -= distAntiga;
                 distTotal += distNova;
@@ -420,6 +423,10 @@ void melhorativaPairSwapLast(Cidades *cidades, int *conjuntoSolucao, int noFixo)
                 temp = conjuntoSolucao[noFixo];
                 conjuntoSolucao[noFixo] = conjuntoSolucao[i];
                 conjuntoSolucao[i] = temp;
+
+                // Recalcula as distancias para os vizinhos do noFixo (1° elemento do par, agora trocado)
+                distAntiga = calculaDistancia(cidades[conjuntoSolucao[noFixo - 1]-1], cidades[conjuntoSolucao[noFixo]-1]);
+                distAntiga += calculaDistancia(cidades[conjuntoSolucao[noFixo]-1], cidades[conjuntoSolucao[noFixo + 1]-1]);
             }
         }    
 
@@ -447,7 +454,7 @@ void main(int argc, char *argv[])
     // vetorDistancias = (int*) malloc(tamDiagSup * sizeof(int)); /* aloca memória para o vetor de distancias de acordo com o TAM_SOL */
 
     lerArquivo(argv[1], cidades);
-    mostrarCidades(cidades);
+    // mostrarCidades(cidades);
     // mostrarDistancias(vetorDistancias);
 
 
